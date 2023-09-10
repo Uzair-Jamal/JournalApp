@@ -3,6 +3,7 @@ package com.example.journalapp
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -11,6 +12,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.journalapp.databinding.ActivityJournalListBinding
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -22,22 +24,24 @@ import com.google.firebase.storage.StorageReference
 class JournalList : AppCompatActivity() {
     lateinit var binding: ActivityJournalListBinding
 
-    //Firebase Reference
-    lateinit var firebaseAuth: FirebaseAuth
-    lateinit var user: FirebaseUser
-    var db = FirebaseFirestore.getInstance()
+    // Firebase References
+    lateinit var  firebaseAuth:FirebaseAuth
+    lateinit var  user: FirebaseUser
+    var db =  FirebaseFirestore.getInstance()
     lateinit var storageReference: StorageReference
-
-    lateinit var journalList: MutableList<Journal>
     var collectionReference: CollectionReference = db.collection("Journal")
 
+
+    lateinit var journalList: MutableList<Journal>
     lateinit var adapter: JournalRecyclerAdapter
-    lateinit var noPostTextView: TextView
+
+    lateinit var noPostsTextView: TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this,R.layout.activity_journal_list)
+
 
         // Firebase Auth
         firebaseAuth = Firebase.auth
@@ -48,7 +52,7 @@ class JournalList : AppCompatActivity() {
         binding.recyclerView.layoutManager =
             LinearLayoutManager(this)
 
-        // Posts ArrayList
+        // Posts arraylist
         journalList = arrayListOf<Journal>()
     }
 
@@ -59,38 +63,54 @@ class JournalList : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
-            R.id.action_add -> if(user != null && firebaseAuth != null){
-                val intent = Intent(this,AddJournalActivity::class.java)
+            R.id.action_add -> if (user != null && firebaseAuth != null){
+                val intent = Intent(this, AddJournalActivity::class.java)
                 startActivity(intent)
             }
+
             R.id.action_signout -> {
                 if (user != null && firebaseAuth != null){
                     firebaseAuth.signOut()
-                    val intent = Intent(this,MainActivity::class.java)
+                    val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
                 }
             }
+
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onStart() {
         super.onStart()
+
+
         collectionReference.whereEqualTo("userId",
-            JournalUser.instance?.userId)
+            user.uid)
             .get()
             .addOnSuccessListener {
-                if(!it.isEmpty){
-                    it.forEach {
-                        // convert snapshot to journal objects
-                        var journal = it.toObject(Journal::class.java)
+                Log.i("TAGY","sizey: ${it.size()}" )
+                if (!it.isEmpty){
 
+                    Log.i("TAGY","Elements: ${it}" )
+
+                    for (document in it){
+                        var journal = Journal(
+                            document.data["title"].toString(),
+                            document.data["thoughts"].toString(),
+                            document.data["imageUrl"].toString(),
+                            document.data["userId"].toString(),
+                            document.data["timeAdded"] as Timestamp,
+                            document.data["username"].toString(),
+
+                            )
                         journalList.add(journal)
 
                     }
+
+
                     // RecyclerView
                     adapter = JournalRecyclerAdapter(
-                        this,journalList
+                        this, journalList
                     )
                     binding.recyclerView.setAdapter(adapter)
                     adapter.notifyDataSetChanged()
@@ -101,9 +121,12 @@ class JournalList : AppCompatActivity() {
             }.addOnFailureListener {
                 Toast.makeText(
                     this,
-                    "Opps! something went wrong",
+                    "Opps! Something went wrong!",
                     Toast.LENGTH_SHORT
                 ).show()
             }
+
+
+
     }
 }

@@ -17,14 +17,14 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = DataBindingUtil.setContentView(this,R.layout.activity_sign_up)
 
         auth = Firebase.auth
 
-        binding.accSignUpButton.setOnClickListener {
+        binding.accSignUpButton.setOnClickListener(){
             createUser()
         }
-
     }
 
     private fun createUser() {
@@ -41,14 +41,12 @@ class SignUpActivity : AppCompatActivity() {
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w("TAGY", "createUserWithEmail:failure", task.exception)
-                    Toast.makeText(
-                        baseContext,
-                        "Authentication failed.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    Toast.makeText(baseContext, "Authentication failed.",
+                        Toast.LENGTH_SHORT).show()
                     updateUI(null)
                 }
             }
+
     }
 
     private fun updateUI(user: FirebaseUser?) {
@@ -59,8 +57,8 @@ class SignUpActivity : AppCompatActivity() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
-        if (currentUser != null) {
-            reload()
+        if(currentUser != null){
+            reload();
         }
     }
     public fun reload(){

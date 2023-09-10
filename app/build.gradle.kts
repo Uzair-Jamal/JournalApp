@@ -63,5 +63,7 @@ dependencies {
     // Storage
     implementation("com.google.firebase:firebase-storage-ktx")
 
+    implementation ("androidx.databinding:databinding-runtime:4.0.2")
+
 
 }
